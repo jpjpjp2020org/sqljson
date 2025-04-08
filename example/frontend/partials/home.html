@@ -1,0 +1,17 @@
+<h3>Building a Framework-Like Thing:</h3>
+
+<h2 class="intro">Like the biggest ball of string cheese in the world - totally pointless but absence of logic becomes presence of weirdness.</h2>
+
+<p class="citation-style">Examples:</p>
+
+<div class="examplebox">
+    <h4><span class="spanbold">Limit</span> -  A minimal example of isolating declarative raw SQL queries into templates, while trying to reduce backend and frontend procedural logic. Tries to separate initial setup from long-term maintenance with a structured and config-based approach.</h4>
+</div>
+
+<div class="examplebox">
+    <h4><span class="spanbold">Drafts</span> - An example of breaking down text content drafting and publishing into its raw database representation. Uses separate DB tables and atomic transactions instead of tracking post states in a single table. Tries to max out raw SQL and to minimize procedural code, so that frontend triggers and backend facilitates. This would IRL hopefully allow handling, storing, and optimizing lower value data (like drafts) and higher value data (like published) posts separately.</h4>
+</div>
+
+<div class="examplebox">
+    <h4><span class="spanbold">Access</span> - An example of implementing access and permission logic without roles and instead as relations in a DB, while maxing out raw SQL queries and minimizing procedural code in the backend logic. Again, trying to use frontend as a trigger and backend as a facilitator.</h4>
+</div>

@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "config": "^3.3.12",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.11.1"
+  },
+  "scripts": {
+    "build": "npm run dist:framework && npm install",
+    "start": "node server.js",
+    "dist:framework": "sh -c 'mkdir -p ../frontend ../backend && mkdir -p ../frontend/lib ../backend/lib && cp -n ../../framework/core_backend/* ../backend/lib/ && cp -n ../../framework/core_frontend/* ../frontend/lib/ && cp -n ../../framework/core_package_json/package.json ../backend/package.json'"
+  }
+}

@@ -1,0 +1,53 @@
+framework will not need bakcend and frontend at all - will only have reusable components
+like connection and querytool etc
+
+actual example will need a proejct structure
+
+* automate routesConfig generation too into ascipt, but this needs to be a build script before npm start - can do later
+
+https://grouplens.org/datasets/movielens/
+
+
+* remove addeventlisteners from framework parts - engineer can still use as this is up to their discretion
+
+* /*
+
+abstract sanitization into parameterized queries - config based
+
+DEFINE FROM WHERE HOW MUCH IS NEEDED AND SANITIZE BY CONFIG!!!
+
+as node anyway uses raw queries?!?!?!
+
+OR MAKE SQL SUPER HEAVY - LIKE IN MACTH-ME CONNECTIONS, INCOMING, OUTGOING AND LIMIT PAGINATION!!!!!!!
+THIS IS ANYWAY THE RBAC EXAMPLE
+
+and wrapper procedural code example - pack super heavy stuff into sql and can drop rest
+
+- Enforcing a locked-down, parameterized, and sanitized query structure via config makes sense in environments where multiple developers work on the same system.
+- This reduces the risk of raw, unsafe SQL being written.
+- which means that can hand over after raw sql is locked down by the one who set it up
+
+*/
+
+1. move rouescondig, clientApp and index.js Too like a template - baseline conf shown - home and random page.
+2. but start will not override this
+3, djangoesque setup with abstraction but freedom to change
+
+SO:
+build command needs to copy,generate, built:
+1. routesConfig
+2. index.html with app container
+3. clientApp
+4. index.js
+
+and exmaples like home and random
+
+like 
+
+"scripts": {
+  "build": "mkdir -p example/backend && mkdir -p example/frontend/lib && cp -n framework/templates/routesConfig.js example/backend/ && cp -n framework/templates/index.js example/frontend/ && cp -n framework/core/clientApp.js example/frontend/lib/",
+  "start": "npm run build && node example/backend/server.js"
+}
+
+NB NB NB - for this manual fake packaging example, need to document node packahe json script to be added!!!
+

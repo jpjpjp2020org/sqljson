@@ -1,0 +1,49 @@
+<h3>Drafting and publishing as DB state</h3>
+
+<p class="citation">Table row counts:</p>
+<p class="citation">---------------------</p>
+<p class="citation">draft_storage: <span id="draft_storage"></span></p>
+<p class="citation">edit_draft: <span id="edit_draft"></span></p>
+<p class="citation">published_posts: <span id="published_posts"></span></p>
+
+<div class="examplebox">
+    <p><span class="spanbold">Scope:</span> As post content is irrelevant in this example, the content is limited to timestamping. Data state and rich text handling would likely be separate builds.</p>
+
+    <p><span class="spanbold">Button state:</span> As the example is about DB-enforced constraints, the available actions are deliberately kept 'binary' and simple. Button states + backend validation run on the same DB "state" check.</p>
+</div>
+
+<div class="draft-buttons">
+
+    <div class="data-button">
+        <button id="add-post">Add Post</button>
+    </div>
+
+    <div class="data-button">
+        <button id="save-post">Save Post</button>
+    </div>
+    
+    <div class="data-button">
+        <button id="edit-post">Edit Latest Post</button>
+    </div>
+
+    <div class="data-button">
+        <button id="add-timestamp">Add Timestamp</button>
+    </div>
+    
+    <div class="data-button">
+        <button id="publish-post">Publish Post</button>
+    </div>
+
+    <div class="data-button">
+        <button id="delete-posts">Delete All Posts</button>
+    </div>
+
+</div>
+
+<div class="post-content-area">
+
+    <p class="citation">Post Content:</p>
+    <textarea id="postContent" disabled></textarea>
+
+</div>
+

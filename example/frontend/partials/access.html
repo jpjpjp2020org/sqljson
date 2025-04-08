@@ -1,0 +1,235 @@
+<h3>Access and Permissions as DB state</h3>
+
+<div class="examplebox">
+
+    <p><span class="spanbold">Logic:</span> A rough snapshot of permissions or actions which are defined and constrained in DB + queries similarly to how button state, and backend validation were defined in the Drafts example.</p>
+
+    <p><span class="spanbold">Scope:</span> Managing permissions could also be handled similarly to how post's state is defined in Drafts example by moving it between DB tables with transactions. But this example mainly tries to show a permission as a representation of the queried DB state, without changing the query.</p>
+
+</div>
+
+<h3><span class="spanbold">Inbound, outbound, and connections:</span></h3>
+
+<pre>
+"fetchUserRelations": {
+    "query": "SELECT 
+        u1.id AS user_id,
+        u1.username,
+        u2.id AS other_user_id,
+        u2.username AS other_username,
+        CASE 
+            WHEN i1.user_id IS NOT NULL AND r2.user_id IS NOT NULL THEN 'rejected_outbound'
+            WHEN r1.user_id IS NOT NULL THEN 'block'
+            WHEN i1.user_id IS NOT NULL AND i2.user_id IS NOT NULL THEN 'connection'
+            WHEN i1.user_id IS NOT NULL THEN 'outbound'
+            WHEN i2.user_id IS NOT NULL THEN 'inbound'
+            ELSE 'none'
+        END AS relation_type,
+        CASE 
+            WHEN r2.user_id IS NOT NULL THEN 'blocked'
+            ELSE 'not_blocked'
+        END AS block_status
+    FROM users u1
+    CROSS JOIN users u2
+    LEFT JOIN interests i1 ON i1.user_id = u1.id AND i1.interested_in = u2.id
+    LEFT JOIN interests i2 ON i2.user_id = u2.id AND i2.interested_in = u1.id
+    LEFT JOIN rejections r1 ON r1.user_id = u1.id AND r1.rejected_id = u2.id
+    LEFT JOIN rejections r2 ON r2.user_id = u2.id AND r2.rejected_id = u1.id
+    WHERE u1.id != u2.id;"
+}
+</pre>
+
+<p>The query used here is structured a bit differently to show how relationships are derived from the DB state via the same query. Sort of like the query understanding a decision matrix of intent, based on available options for the user, and then delivering it to procedural code "as is" - 1 output row is user's intent vs any other user. IRL the query would likely be scoped to the requesting user to fetch only data they need and then pattern-matched to actionable insights. For ex. a user seeing only their inbounds, outbounds, connections, and blocks. Will duplicate tables and change references for different examples, but query will remain the same otherwise.</p>
+
+<p><span class="spanbold">DB state 1:</span></p>
+
+<pre>
+framework_db=> SELECT * FROM users;
+id  | username
+----+----------
+ 1  | A
+ 2  | B
+(2 rows)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM interests;
+id  | user_id | interested_in
+----+---------+---------------
+1   |       1 |             2
+(1 row)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM rejections;
+id  | user_id | rejected_id
+----+---------+-------------
+(0 rows)
+</pre>
+
+<p><span class="spanbold">Example 1:</span> Snapshot of a simple DB state which can trigger 1 inbound and one outbound request, because user A has marked interest in user B, while user B has not interacted with user A's instance at all. Marking interest can be a button or swipe which triggers an insert query into the interests table.</p>
+
+<div id="accessData">
+    <p>Loading...</p>
+</div>
+
+<br>
+
+<p><span class="spanbold">DB state 2:</span></p>
+
+<pre>
+framework_db=> SELECT * FROM users2;
+id  | username
+----+----------
+1   | A
+2   | B
+(2 rows)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM interests2;
+id  | user_id | interested_in
+----+---------+---------------
+1   |       1 |             2
+2   |       2 |             1
+(2 rows)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM rejections2;
+id  | user_id | rejected_id
+----+---------+-------------
+(0 rows)
+</pre>
+
+<p><span class="spanbold">Example 2:</span> When both users have marked interest in the other, then the same query can derive from current DB state that we can connect them (for chat etc.) and that we are past the inbound/outbound stage (sort of like a pending request).</p>
+
+<div id="accessData2">
+    <p>Loading...</p>
+</div>
+
+<br>
+
+<p><span class="spanbold">DB state 3:</span></p>
+
+<pre>
+framework_db=> SELECT * FROM users3;
+id  | username
+----+----------
+1   | A
+2   | B
+(2 rows)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM interests3;
+id  | user_id | interested_in
+----+---------+---------------
+1   |       1 |             2
+(1 row)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM rejections3;
+id  | user_id | rejected_id
+----+---------+-------------
+1   |       2 |           1
+(1 row)
+</pre>
+
+<div id="accessData3">
+    <p>Loading...</p>
+</div>
+
+<br>
+<hr>
+<h3><span class="spanbold">User rights by admin:</span></h3>
+
+<pre>
+"fetchAccessPermissions": {
+    "query": "SELECT 
+        u.username, 
+        s.space_name,
+        CASE 
+            WHEN a.user_id IS NOT NULL THEN 'admin'  
+            WHEN p.user_with_access IS NOT NULL AND pl.granted_user IS NOT NULL THEN 'granted'
+            ELSE 'denied'
+        END AS access_status,
+        CASE 
+            WHEN p.user_with_access IS NOT NULL AND pl.granted_user IS NOT NULL THEN true
+            ELSE false
+        END AS has_valid_permission_log
+    FROM users_access u
+    JOIN spaces s ON s.space_name = 'A1'
+    LEFT JOIN admins a ON a.user_id = u.id AND a.owns_space = s.space_name
+    LEFT JOIN permissions p ON p.user_with_access = u.id AND p.space = s.space_name
+    LEFT JOIN permissions_log pl ON pl.granted_user = u.id AND pl.space = s.space_name
+    WHERE u.username = 'A' OR u.username = 'B';"
+}
+</pre>
+
+<p>In this example the query is checking if DB state allows a user access to any area managed by admins. Could run something like this like a backend validation, and permission itself could be given via an atomic transaction sequence set up in the rawQueryTemplates.json file. For example:</p>
+
+<pre>
+"querySequences": {
+    "grantAccessAtomic": {
+        "transaction": true,
+        "steps": [
+            { "queryKey": "logPermissionGrant", "params": ["admin_user", "granted_user", "space"] },
+            { "queryKey": "addPermission", "params": ["granted_user", "space"] }
+        ]
+    }
+}
+</pre>
+
+<p>The idea would be something like always making sure that no permission can be granted if there would not be a log of it in the permissions_log table and vice-versa, aside from checking that permission granter has the right to do so.</p>
+
+<p><span class="spanbold">DB state:</span></p>
+
+<pre>
+framework_db=> SELECT * FROM users_access;
+id  | username
+----+----------
+1   | A
+2   | B
+(2 rows)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM admins;
+id  | user_id | owns_space
+----+---------+------------
+1   |       1 | A1
+(1 row)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM spaces;
+id  | space_name
+----+------------
+1   | A1
+(1 row)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM permissions;
+id  | space | user_with_access
+----+-------+------------------
+1   | A1    |                2
+(1 row)
+</pre>
+
+<pre>
+framework_db=> SELECT * FROM permissions_log;
+id  | admin_user | granted_user | space |         timestamp
+----+------------+--------------+-------+----------------------------
+1   |          1 |            2 | A1    | 2025-02-24 04:44:37.852656
+(1 row)
+</pre>
+
+<p><span class="spanbold">Example:</span> User A is an admin for the space A1. User B has been given the access to the A1 space by user A. While giving the permission and logging who gave it via a transaction should hopefully ensure a strict and traceable procedure, in the validation query we could still just in case check every time that 1. there is a permission for a user, and 2. there is a log of that granted permission, etc.</p>
+
+<div id="accessData4">
+    <p>Loading...</p>
+</div>
+
