@@ -317,7 +317,7 @@ Our example project gives full usage examples with inline comments where applica
   DB_PORT=5432
   DB_NAME=framework_db
   DB_USER=framework_user
-  DB_PASSWORD=alfonso
+  DB_PASSWORD=your_pw
   PORT=3000
   ```
   ```js
